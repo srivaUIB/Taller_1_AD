@@ -1,0 +1,103 @@
+---
+title: "Taller evaluado de repaso para el Primer Parcial"
+subtitle: "20582- Análisis de Datos para el GMAT"
+format:
+  html:
+    theme: lumen
+    toc: true
+    toc-depth: 3
+Rendering:
+    embed-resources: true
+---
+
+Elige un tema que te interese (finanzas, medio ambiente, educación, cine, entre otros). En este taller, aplicarás los pasos del método científico (ver sección 1.1 de los apuntes de la asignatura) para abordar, con datos simulados, una problemática relacionada con el tema elegido. Deberás presentar un informe de tu proyecto siguiendo la estructura detallada en el documento “Recomendaciones para escribir informes de proyectos en Estadística,” que se encuentra en la sección "Práctica" de la página del curso en Aula Digital.
+
+### Primer paso: 
+
+Define los objetivos de tu trabajo: Describe la hipótesis general que deseas investigar y especifica los objetivos específicos necesarios para validar o refutar dicha hipótesis.
+
+### Segundo paso:
+
+Define las variables clave para probar tu hipótesis. Asegúrate de incluir al menos cuatro variables cuantitativas, tres ordinales y dos nominales. Indica las unidades de medida para las variables cuantitativas y los niveles para las variables nominales y ordinales. A continuación, simula los datos en R de acuerdo a las siguientes pautas:
+
+* **Tabla 1**: Genera una tabla con al menos 100 observaciones y las variables definidas en el paso anterior, asegurate que las variables cuantitativas sigan una distribución normal multivariante. A continuación, te presento un ejemplo que simula datos de una encuesta aplicada a estudiantes de secundaria sobre sus hábitos de estudio y rendimiento y que incluye información sobre su contexto de vida, como horas de sueño y tiempo de traslado a la escuela. Este ejemplo no lo debes usar en tu proyecto, solo es para darte una idea de lo que te pido hacer.
+
+```{r}
+library(MASS)
+
+media <- c(10, 7, 30, 5)  # Medias de horas_estudio, horas_sueno, tiempo_traslado, promedio_calificaciones
+covarianza <- matrix(c(15, 2, 5, 1,
+                       2, 6, 3, 1,
+                       5, 3, 20, 2,
+                       1, 1, 2, 1.5), 
+                     nrow = 4, ncol = 4)
+
+
+set.seed(42)
+datos_numericos <- mvrnorm(150, mu = media, Sigma = covarianza)
+
+# Limitar y ajustar valores de promedio_calificaciones a escala 1-10
+datos_numericos[,4] <- pmin(pmax(round(datos_numericos[,4], 1), 1), 10)
+
+# Tabla 1 con los datos 
+rendimiento_estudiantil <- data.frame(
+  horas_estudio = round(datos_numericos[,1], 1),
+  horas_sueno = round(datos_numericos[,2], 1),
+  tiempo_traslado = round(datos_numericos[,3]),
+  promedio_calificaciones = datos_numericos[,4],
+  tipo_escuela = sample(c("Pública", "Privada"), 150, replace = TRUE),
+  nivel_interes = ordered(sample(1:5, 150, replace = TRUE), labels = c("Muy Bajo", "Bajo", "Medio", "Alto", "Muy Alto")),
+  habito_lectura = ordered(sample(1:5, 150, replace = TRUE), labels = c("Nada", "Poco", "Regular", "Frecuente", "Muy Frecuente"))
+)
+```
+
+
+* **Tabla 2**: Consigue algunos datos en Internet que puedas utilizar para ayudar a resolver tu problema (una variable o dos basta), algunas ideas de dónde buscar son: [datos abiertos del Gobierno de España](https://datos.gob.es/es/), [INE](https://www.ine.es/ss/Satellite?L=0&c=Page&cid=1259942408928&p=1259942408928&pagename=ProductosYServicios%2FPYSLayout), [Kaggle](https://www.kaggle.com/), etc. 
+
+
+Une ambas tablas utilizando un identificador simulado en una base de datos única. Emplea las funciones del paquete tidyverse explicadas en la sección 1.7.5 de los apuntes de la asignatura. Esta parte es opcional, pero te permitirá enriquecer tu base de datos y realizar análisis más completos.
+
+
+### Tercer paso
+
+Realiza un análisis descriptivo multivariantes de tu base de datos de acuerdo a los objetivos de tu trabajo. Describe lo observado en el contexto del problema. 
+
+Para las variables cuantitativas de tu base de datos, calcula e interpreta la información que proporciona la varianza generalizada y la varianza total
+
+### Cuarto paso
+
+Selecciona una de las variables no cuantitativas y modelízala con una distribución multinomial, debes estimar sus parámetros. Utiliza el modelo para calcular la probabilidad de que ocurra un evento de interés en una muestra de tamaño 20, relevante para tu problema.
+
+### Quinto paso
+
+Con las variables cuantitativas de tu base de datos, ajusta un modelo de regresión multivariante en la forma:
+
+$$Y=\beta_0+\beta_1 X_1+ \cdots + \beta_p X_p + \epsilon$$
+Donde $Y$ es la variable cuantitativa que deseas explicar en función del resto de variables cuantitativas registradas. Además, calcula la función de score e interpreta su resultado en el contexto del problema.
+
+### Sexto paso
+
+Realiza un contraste de hipótesis de dos medias multivariante que sea relevante para tu problema. Por ejemplo, podrías evaluar si el vector de medias de la variable cuantitativa de interés $Y$ es el mismo para dos niveles distintos de la variable no cuantitativa que modelaste como multinomial en el paso anterior. Ejecuta el contraste tanto teóricamente como con la función hotelling.test en R. Escribe la conclusión del contraste en el contexto de tu problema.
+
+### Último paso
+
+Recuerda que:
+
+* De acuerdo con las recomendaciones para redactar informes de proyectos en Estadística, tu informe debe incluir conclusiones, recomendaciones y bibliografía.
+
+* Crea un repositorio en GitHub para tu proyecto y asegúrate de añadir en el encabezado YAML la siguiente opción necesaria para la renderización sin problemas:
+
+
+```{r, eval=FALSE}
+Rendering:
+    embed-resources: true
+
+```
+
+¡Buena suerte y disfruta del proceso!
+
+
+
+
+
+
