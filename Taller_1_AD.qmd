@@ -1,0 +1,80 @@
+---
+title: "Solución_Taller_1_AD"
+format: html
+editor: visual
+format:
+  html:
+    theme: lumen
+    toc: true
+    toc-depth: 3
+Rendering:
+    embed-resources: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(MASS)
+```
+
+### Primer paso:
+
+El objetivo de este trabajo es investigar sobre los hábitos energéticos en los hogares de la población y como es la concienciación de la gente respecto del cambio climático. Voy a analizar la relación entre la eficiencia energética de los hogares y el consumo de electricidad en estos. También si existe alguna relación entre los hábitos energéticos y el tipo de vivienda. Por último analizaré si el gasto en combustibles fósiles y la percepción del consumidor acerca del cambio climático tienen alguna relación.
+
+Primero definiré las variables cuantitativas:
+
+```{=tex}
+\begin{itemize}
+  \item Consumo energético mensual promedio en kWh.
+  \item Coste mensual promedio de la factura energética.
+  \item Gasto promedio en litros de combustibles fósiles.
+  \item Superfície del hogar en $m^2$.
+\end{itemize}
+```
+Definimos las variables ordinales:
+
+```{=tex}
+\begin{itemize}
+  \item Nivel de eficacia energética del hogar: "Muy bajo", "Bajo", "Medio", "Alto" y "Muy alto".
+  \item Percepción sobre la relevancia del cambio climático: "Nada importante", "Poco importante", "Neutral", "Importante" y "Muy importante". -
+  \item Frecuencia en prácticas de ahorro energético: "Nunca", "Rara vez", "A veces", "Frecuentemente" y "Siempre".
+\end{itemize}
+```
+
+Por último definimos las variables nominales:
+
+```{=tex}
+\begin{itemize}
+  \item Tipo de vivienda: "Piso","Apartamento", "Adosado" o "Unifamiliar". 
+  \item Zona de residéncia: "Urbana", "Interurbano" o "Rural". 
+  \item Fuente de energía renovable: "Ninguna", "Placas solares", "Turbina eólica".
+\end{itemize}
+```
+
+### Segundo paso:
+
+```{r}
+media <- c(270, 63, 150, 97)  # Consumo energético medio, Coste medio, Gasto medio en combustible, Superfície media.
+covarianza <- matrix(c(200, 2, 5, 1,
+                       2, 30, 3, 1,
+                       5, 3, 50, 2,
+                       1, 1, 2, 10.5), 
+                     nrow = 4, ncol = 4)
+
+set.seed(42)
+datos_numericos <- mvrnorm(150, mu = media, Sigma = covarianza)
+
+# Tabla 1 con los datos 
+raw_data <- data.frame(
+  consumo = round(datos_numericos[,1], 2),
+  coste = round(datos_numericos[,2], 2),
+  gasto_combustible = round(datos_numericos[,3],1),
+  superficie = round(datos_numericos[,4],2),
+  nivel_eficiencia = sample(c("Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"), 150, replace = TRUE),
+  relevancia_cambio = sample(1:5, 150, replace = TRUE), labels = c("Nada importante", "Poco importante", "Neutral", "Importante", "Muy importante"),
+  ahorro_energia = sample(1:5, 150, replace = TRUE), labels = c("Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre")
+)
+```
