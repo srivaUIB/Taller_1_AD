@@ -1,5 +1,6 @@
 ---
 title: "Solución_Taller_1_AD"
+subtitle: "Análisis del uso de la energía en el hogar"
 format: html
 editor: visual
 format:
@@ -18,29 +19,33 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```{r}
 library(tidyverse)
 library(MASS)
+library(GGally)
+library(ggcorrplot)
+library(Hotelling)
 ```
 
 ### Primer paso:
 
-El objetivo de este trabajo es investigar sobre los hábitos energéticos en los hogares de la población y como es la concienciación de la gente respecto del cambio climático. Voy a analizar la relación entre la eficiencia energética de los hogares y el consumo de electricidad en estos. También si existe alguna relación entre los hábitos energéticos y el tipo de vivienda. Por último analizaré si el gasto en combustibles fósiles y la percepción del consumidor acerca del cambio climático tienen alguna relación.
+El principal objetivo de este trabajo es investigar sobre los hábitos energéticos en los hogares de la población y como se relacionan el consumo energético con otros factores como el coste de la factura, la superfície del hogar, el tipo de vivienda, etc. 
 
 Primero definiré las variables cuantitativas:
 
 ```{=tex}
 \begin{itemize}
   \item Consumo energético mensual promedio en kWh.
-  \item Coste mensual promedio de la factura energética.
-  \item Gasto promedio en litros de combustibles fósiles.
+  \item Coste mensual promedio de la factura energética en euros.
+  \item Gasto promedio en litros de combustibles fósiles en euros.
   \item Superfície del hogar en $m^2$.
 \end{itemize}
 ```
+
 Definimos las variables ordinales:
 
 ```{=tex}
 \begin{itemize}
   \item Nivel de eficacia energética del hogar: "Muy bajo", "Bajo", "Medio", "Alto" y "Muy alto".
-  \item Percepción sobre la relevancia del cambio climático: "Nada importante", "Poco importante", "Neutral", "Importante" y "Muy importante". -
-  \item Frecuencia en prácticas de ahorro energético: "Nunca", "Rara vez", "A veces", "Frecuentemente" y "Siempre".
+  \item Cual es la percepción sobre la relevancia del cambio climático: "Nada importante", "Poco importante", "Neutral", "Importante" y "Muy importante". -
+  \item Con que frecuencia se realizan prácticas de ahorro energético en el hogar: "Nunca", "Rara vez", "A veces", "Frecuentemente" y "Siempre".
 \end{itemize}
 ```
 
@@ -49,23 +54,26 @@ Por último definimos las variables nominales:
 ```{=tex}
 \begin{itemize}
   \item Tipo de vivienda: "Piso","Apartamento", "Adosado" o "Unifamiliar". 
-  \item Zona de residéncia: "Urbana", "Interurbano" o "Rural". 
-  \item Fuente de energía renovable: "Ninguna", "Placas solares", "Turbina eólica".
+  \item Zona de residencia: "Urbana", "Interurbano" o "Rural".
+  \item Existencia de fuentes de energía renovables en el hogar: "Sí", "No".
 \end{itemize}
 ```
 
 ### Segundo paso:
 
+A continuación, vamos a generar los datos que analizaremos: cuatro variables cuantitativas, tres ordinales y tres nominales
+
 ```{r}
 media <- c(270, 63, 150, 97)  # Consumo energético medio, Coste medio, Gasto medio en combustible, Superfície media.
-covarianza <- matrix(c(200, 2, 5, 1,
-                       2, 30, 3, 1,
-                       5, 3, 50, 2,
-                       1, 1, 2, 10.5), 
+covarianza <- matrix(c(200, 20, 0.5, 12,
+                       20, 30, 5, 7.5,
+                       0.5, 5, 50, 6,
+                       12, 7.5, 6, 10.5), 
                      nrow = 4, ncol = 4)
 
 set.seed(42)
-datos_numericos <- mvrnorm(150, mu = media, Sigma = covarianza)
+n = 350
+datos_numericos <- mvrnorm(n, mu = media, Sigma = covarianza)
 
 # Tabla 1 con los datos 
 raw_data <- data.frame(
@@ -73,8 +81,209 @@ raw_data <- data.frame(
   coste = round(datos_numericos[,2], 2),
   gasto_combustible = round(datos_numericos[,3],1),
   superficie = round(datos_numericos[,4],2),
-  nivel_eficiencia = sample(c("Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"), 150, replace = TRUE),
-  relevancia_cambio = sample(1:5, 150, replace = TRUE), labels = c("Nada importante", "Poco importante", "Neutral", "Importante", "Muy importante"),
-  ahorro_energia = sample(1:5, 150, replace = TRUE), labels = c("Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre")
+  nivel_eficiencia = sample(c("Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"), n, replace = TRUE),
+  relevancia_cambio = sample(c("Nada importante", "Poco importante", "Neutral", "Importante", "Muy importante"), n, replace = TRUE),
+  ahorro_energia = sample(c("Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre"), n, replace = TRUE),
+  tipo_vivienda = sample(c("Piso", "Apartamento", "Adosado", "Unifamiliar"), n, replace = TRUE),
+  zona = sample(c("Urbano", "Interurbano", "Rural"), n, replace = TRUE),
+  renovable = sample(c("Si", "No"), n, replace = TRUE)
 )
+#Paso las variables ordinales a clase factor para determinar el orden de los niveles
+raw_data$nivel_eficiencia <- raw_data$nivel_eficiencia %>% factor(levels = c("Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"))
+raw_data$relevancia_cambio <- raw_data$relevancia_cambio %>% factor(levels = c("Nada importante", "Poco importante", "Neutral", "Importante", "Muy importante"))
+raw_data$ahorro_energia <- raw_data$ahorro_energia %>% factor(levels = c("Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre"))
 ```
+
+### Tercer paso
+Realiza un análisis descriptivo multivariantes de tu base de datos de acuerdo a los objetivos de tu trabajo. Describe lo observado en el contexto del problema. 
+
+Para las variables cuantitativas de tu base de datos, calcula e interpreta la información que proporciona la varianza generalizada y la varianza total
+
+```{r}
+datos_recortados <- raw_data[,1:5]
+datos_recortados %>% ggpairs(aes(color = nivel_eficiencia, alpha = 0.7))
+```
+Podemos notar que los diagramas de caja no aportan información relevante, ya que los datos están muy juntos.
+
+También podemos ver que la única correlación con un nivel bajo de significación se da entre el gasto en combustibles fósiles y el consumo energético. Aplicaré un test de correlación para ver como es la correlación en la población. 
+
+```{r}
+cor.test(raw_data$gasto_combustible, raw_data$consumo)
+```
+Con este nivel de significación, no podemos rechazar que la correlación sea $0$.
+
+Finalmente, voy a calcular la distancia de Mahalanobis para ver si sigue una distribución Chi cuadrado:
+
+```{r}
+distancia <- raw_data[,1:4] %>% mahalanobis(colMeans(raw_data[,1:4]), cov(raw_data[,1:4]))
+hist(distancia, breaks = 100, probability = TRUE, main = "Distancias de Mahalanobis al cuadrado", xlab = "Distancias al Cuadrado")
+x <- seq(0, max(distancia), length = 100)
+y <- dchisq(x, df = 4)
+lines(x, y * diff(hist(distancia, plot = FALSE)$breaks)[1], col = "red")
+```
+
+```{r}
+ks.test(distancia, "pchisq", df = 3)
+```
+
+El *p-valor* es suficientemente pequeño, por tanto podemos concluir que la distancia sigue una distribución Chi cuadrado.
+
+## Relación entre el nivel de eficiencia del hogar y el consumo de energía
+
+Vamos a analizar si existe algún tipo de relación entre la cantidad de energía que se consume en un hogar y el nivel de eficiencia energética que tiene este mismo. 
+
+```{r}
+#Comparar la eficiencia y el nivel de consumo
+grafico1 <- raw_data %>% ggplot(aes(x=nivel_eficiencia, y=consumo)) + geom_violin(trim = F, fill = "pink", color = "red") + geom_boxplot(width=0.3, color = "red") + geom_jitter(position = position_jitter(width = 0.15), color = "blue", size = 1, alpha = 0.7) + labs(x="Eficiencia", y="Consumo") + ggtitle("Consumo según eficiencia") + theme_minimal()
+grafico1
+```
+
+Podemos ver que los gráficos se encuentran todos al mismo nivel, por tanto, no podemos concluir nada significativo.
+
+```{r}
+summary(aov(consumo~nivel_eficiencia, data = raw_data))
+```
+
+El *p-valor* es grande y por tanto, no podemos rechazar la hipótesis de que haya diferencias significativas entre el consumo energético y el nivel de eficiencia energética del hogar. Es decir, no podemos concluir que el nivel de eficiencia energética afecte al consumo de energía.
+
+## Relación entre el coste mensual de la factura energética y el tipo de vivienda
+
+```{r}
+#Comparar el coste de la factura y el tipo de vivienda
+grafico2 <- raw_data %>% ggplot(aes(x=tipo_vivienda, y=coste)) + geom_violin(trim = F, fill = "pink", color = "red") + geom_boxplot(width=0.3, color = "red") + geom_jitter(position = position_jitter(width = 0.15), color = "blue", size = 1, alpha = 0.7) + labs(x="Tipo de vivienda", y="Coste") + ggtitle("Coste según el tipo de vivienda") + theme_minimal()
+grafico2
+```
+
+De nuevo, el diagrama no nos permite sacar ninguna conclusión útil.
+
+```{r}
+summary(aov(coste~tipo_vivienda, data = raw_data))
+```
+
+Como el *p-valor* es grande, no podemos rechazar la hipótesis nula, por tanto no podemos concluir que el tipo de vivienda afecte al coste de la factura de energía.
+
+## Relación entre el gasto en combustibles fósiles y la percepción sobre el cambio climático
+
+```{r}
+#Comparar el gasto en combustibles fósiles y la percepción sobre el cambio climático
+grafico3 <- raw_data %>% ggplot(aes(x=relevancia_cambio, y=gasto_combustible)) + geom_violin(trim = F, fill = "pink", color = "red") + geom_boxplot(width=0.3, color = "red") + geom_jitter(position = position_jitter(width = 0.15), color = "blue", size = 1, alpha = 0.7) + labs(x="Importancia del cambio climático", y="Gasto en combustibles fósiles") + ggtitle("Gasto en combustibles fósiles respecto a la percepción sobre el cambio climático") + theme_minimal()
+grafico3
+```
+
+```{r}
+summary(aov(gasto_combustible~relevancia_cambio, data = raw_data))
+```
+
+El *p-valor* vuelve a ser grande, por tanto, no hay suficiente evidencia como para concluir que la percepción sobre el cambio climático puede afectar al gasto en combustibles fósiles.
+
+## Análisis del impacto de las prácticas de ahorro energético en el consumo y coste energético
+
+```{r}
+grafico4 <- raw_data %>% ggplot(aes(x = zona, y = consumo, fill = ahorro_energia)) +
+  geom_boxplot() +
+  labs(title = "Consumo de Energía según Prácticas de Ahorro", x = "Prácticas de Ahorro de Energía", y = "Consumo de Energía (kWh)")
+grafico4
+```
+
+En este gráfico podemos ver que el consumo se mantiene en un mismo rango para todas las categorías. En las zonas interurbanas, parece que las personas que nunca llevan a cabo prácticas de ahorro consumen de media más energía, mientras que en las zonas urbanas, pasa lo contrario. Pero en general, el gráfico no aporta información relevante.
+
+```{r}
+#Creamos un data frame con solo las variables numéricas
+variables_numericas <- raw_data %>% subset(select = c(consumo, coste, gasto_combustible, superficie))
+#Calculamos la matriz de covarianzas
+S <- variables_numericas %>% cov()
+#Calculamos la varianza generalizada
+var_gen <- S %>% det()
+#Calculamos la varianza total
+var_tot <- S %>% diag() %>% sum()
+var_gen
+var_tot
+```
+
+La varianza generalizada es $1992256$, lo cual es un valor bastante grande; esto indica que la dispersión de los datos es elevada. La varianza total es $278.036$.
+
+### Cuarto paso 
+
+En este apartado vamos a trabajar con la variable \textit(nivel_eficiencia), que recordemos que nos da el valor del nivel de eficiencia energética del hogar clasificado entre cinco niveles: "Muy bajo", "Bajo", "Medio", "Alto", "Muy alto".
+
+```{r}
+#Primero contamos la frecuencia de cada nivel
+frecuencia <- raw_data$nivel_eficiencia %>% table()
+#Calculamos la probabilidad de cada nivel; sumarán 1
+probabilidad <- frecuencia %>% prop.table()
+probabilidad
+frecuencia
+```
+
+Un evento de interés en una muestra de tamaño $20$ sería por ejemplo que ningún hogar tuviese niveles de eficiencia "Alto" ni "Muy alto". consideremos por ejemplo que en la muestra hay $5$ observaciones de "Muy bajo", $10$ de "Bajo" y $5$ de "Medio".
+
+```{r}
+obs <- c(5, 10, 5, 0, 0)
+prob <- obs %>% dmultinom(size = 20, prob = probabilidad)
+prob
+```
+
+Como podemos observar, la probabilidad del suceso es extremadamente baja.
+
+### Quinto paso
+
+A continuación vamos a ajustar un modelo de regresión multivariante de la forma:
+
+$$Y=\beta_0+\beta_1 X_1+\beta_2 X_2+ \epsilon$$
+Donde postularé que la variable $Y$, que referencia al consumo energético de un hogar, tiene una relación lineal con el coste de la factura energética $X_1$ y la superfície del hogar $X_2$.
+
+```{r}
+#Defino la variable dependiente
+Y <- raw_data$consumo
+#Defino la variable independiente
+X_1 <- raw_data$coste
+X_2 <- raw_data$superficie
+#A continuació realizamos el ajuste
+ajuste <- lm(Y~X_1+X_2)
+```
+
+```{r}
+shapiro.test(ajuste$residuals)
+```
+
+Tenemos suficiente evidencia como para confirmar que los residuos siguen una distribución normal.
+
+```{r}
+Y <- raw_data[,1] %>% matrix()
+subdata <- raw_data %>% subset(select = c(coste, superficie))
+X <- subdata %>% as.matrix()
+columna <- matrix(1, nrow = n, ncol = 1)
+X <- cbind(columna, X)
+coeficientes <- ajuste$coefficients %>% matrix()
+score <- t(X)%*%(Y-X%*%coeficientes)
+```
+
+La función score es muy cercana a cero, por lo tanto, los parámetros estimados en el ajuste lineal se encuentran en un máximo. 
+
+### Sexto paso
+
+En este paso vamos a realizar un contraste de hipótesis de dos medias multivariante para analizar si el vector de medias de la variable que da el consumo energético es el mismo para dos niveles diferentes de la variable que da el nivel de eficiencia; en este caso tomaremos los niveles "Alto" y "Bajo":
+
+```{r}
+p <- 4
+nivel_alto <- raw_data[raw_data$nivel_eficiencia == "Alto",][,1:4]
+n_1 <- nivel_alto %>% nrow()
+nivel_bajo <- raw_data[raw_data$nivel_eficiencia == "Bajo",][,1:4]
+n_2 <- nivel_bajo %>% nrow()
+medias_alto <- nivel_alto %>% colMeans()
+medias_bajo <- nivel_bajo %>% colMeans()
+#Calculamos el estadístico
+estadistico <- (n_1*n_2/(n_1+n_2))*t(medias_alto-medias_bajo)%*%solve(covarianza)*(medias_alto-medias_bajo)
+```
+
+```{r}
+chisq.test(estadistico)
+```
+
+El *p-valor* no es significativo, por tanto no tenemos suficiente evidencia como para rechazar que ambas medias sean iguales.
+
+### Conclusión
+
+En conclusión, las variables cuantitativas están correlacionadas entre ellas; salvo el gasto en combustible y el consumo, que no se puede rechazar que la correlación sea nula.
+
+Por otro lado, no hemos podido extraer ninguna conclusión interesante de la relación entre las variables que hemos estudiado, ya que no parece haber una relación entre estas.
