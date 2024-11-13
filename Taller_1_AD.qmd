@@ -11,6 +11,7 @@ format:
 Rendering:
     embed-resources: true
 ---
+**https://github.com/srivaUIB/Taller_1_AD**
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -95,9 +96,6 @@ raw_data$ahorro_energia <- raw_data$ahorro_energia %>% factor(levels = c("Nunca"
 ```
 
 ### Tercer paso
-Realiza un análisis descriptivo multivariantes de tu base de datos de acuerdo a los objetivos de tu trabajo. Describe lo observado en el contexto del problema. 
-
-Para las variables cuantitativas de tu base de datos, calcula e interpreta la información que proporciona la varianza generalizada y la varianza total
 
 ```{r}
 datos_recortados <- raw_data[,1:5]
@@ -287,3 +285,9 @@ El *p-valor* no es significativo, por tanto no tenemos suficiente evidencia como
 En conclusión, las variables cuantitativas están correlacionadas entre ellas; salvo el gasto en combustible y el consumo, que no se puede rechazar que la correlación sea nula.
 
 Por otro lado, no hemos podido extraer ninguna conclusión interesante de la relación entre las variables que hemos estudiado, ya que no parece haber una relación entre estas.
+
+El problema de no haber concluido nada interesante se puede deber a que los datos no son reales, y por tanto, puede que haya variables que tomen valores que no tengan sentido con otras. Creo que sería mejor trabajar directamente con una base de datos real a la hora de hacer el análisis.
+
+### Bibliografía
+
+Toda la información ha sido sacada de los apuntes de la asignatura y de la guía de R.
