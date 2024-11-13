@@ -1,7 +1,6 @@
 ---
-title: "Solución_Taller_1_AD"
-subtitle: "Análisis del uso de la energía en el hogar"
-format: html
+title: "Análisis del uso de la energía en el hogar"
+subtitle: "Taller 1"
 editor: visual
 format:
   html:
@@ -11,10 +10,11 @@ format:
 Rendering:
     embed-resources: true
 ---
+
 **https://github.com/srivaUIB/Taller_1_AD**
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r}
@@ -27,38 +27,26 @@ library(Hotelling)
 
 ### Primer paso:
 
-El principal objetivo de este trabajo es investigar sobre los hábitos energéticos en los hogares de la población y como se relacionan el consumo energético con otros factores como el coste de la factura, la superfície del hogar, el tipo de vivienda, etc. 
+El principal objetivo de este trabajo es investigar sobre los hábitos energéticos en los hogares de la población y como se relacionan el consumo energético con otros factores como el coste de la factura, la superfície del hogar, el tipo de vivienda, etc.
 
 Primero definiré las variables cuantitativas:
 
-```{=tex}
-\begin{itemize}
-  \item Consumo energético mensual promedio en kWh.
-  \item Coste mensual promedio de la factura energética en euros.
-  \item Gasto promedio en litros de combustibles fósiles en euros.
-  \item Superfície del hogar en $m^2$.
-\end{itemize}
-```
+  - Consumo energético mensual promedio en kWh.
+  - Coste mensual promedio de la factura energética en euros.
+  - Gasto promedio en litros de combustibles fósiles en euros.
+  - Superfície del hogar en $m^2$.
 
 Definimos las variables ordinales:
 
-```{=tex}
-\begin{itemize}
-  \item Nivel de eficacia energética del hogar: "Muy bajo", "Bajo", "Medio", "Alto" y "Muy alto".
-  \item Cual es la percepción sobre la relevancia del cambio climático: "Nada importante", "Poco importante", "Neutral", "Importante" y "Muy importante". -
-  \item Con que frecuencia se realizan prácticas de ahorro energético en el hogar: "Nunca", "Rara vez", "A veces", "Frecuentemente" y "Siempre".
-\end{itemize}
-```
+  - Nivel de eficacia energética del hogar: "Muy bajo", "Bajo", "Medio", "Alto" y "Muy alto".
+  - Cual es la percepción sobre la relevancia del cambio climático: "Nada importante", "Poco importante", "Neutral", "Importante" y "Muy importante". -
+  - Con que frecuencia se realizan prácticas de ahorro energético en el hogar: "Nunca", "Rara vez", "A veces", "Frecuentemente" y "Siempre".
 
 Por último definimos las variables nominales:
 
-```{=tex}
-\begin{itemize}
-  \item Tipo de vivienda: "Piso","Apartamento", "Adosado" o "Unifamiliar". 
-  \item Zona de residencia: "Urbana", "Interurbano" o "Rural".
-  \item Existencia de fuentes de energía renovables en el hogar: "Sí", "No".
-\end{itemize}
-```
+  - Tipo de vivienda: "Piso","Apartamento", "Adosado" o "Unifamiliar". 
+  - Zona de residencia: "Urbana", "Interurbano" o "Rural".
+  - Existencia de fuentes de energía renovables en el hogar: "Sí", "No".
 
 ### Segundo paso:
 
@@ -101,13 +89,15 @@ raw_data$ahorro_energia <- raw_data$ahorro_energia %>% factor(levels = c("Nunca"
 datos_recortados <- raw_data[,1:5]
 datos_recortados %>% ggpairs(aes(color = nivel_eficiencia, alpha = 0.7))
 ```
+
 Podemos notar que los diagramas de caja no aportan información relevante, ya que los datos están muy juntos.
 
-También podemos ver que la única correlación con un nivel bajo de significación se da entre el gasto en combustibles fósiles y el consumo energético. Aplicaré un test de correlación para ver como es la correlación en la población. 
+También podemos ver que la única correlación con un nivel bajo de significación se da entre el gasto en combustibles fósiles y el consumo energético. Aplicaré un test de correlación para ver como es la correlación en la población.
 
 ```{r}
 cor.test(raw_data$gasto_combustible, raw_data$consumo)
 ```
+
 Con este nivel de significación, no podemos rechazar que la correlación sea $0$.
 
 Finalmente, voy a calcular la distancia de Mahalanobis para ver si sigue una distribución Chi cuadrado:
@@ -128,7 +118,7 @@ El *p-valor* es suficientemente pequeño, por tanto podemos concluir que la dist
 
 ## Relación entre el nivel de eficiencia del hogar y el consumo de energía
 
-Vamos a analizar si existe algún tipo de relación entre la cantidad de energía que se consume en un hogar y el nivel de eficiencia energética que tiene este mismo. 
+Vamos a analizar si existe algún tipo de relación entre la cantidad de energía que se consume en un hogar y el nivel de eficiencia energética que tiene este mismo.
 
 ```{r}
 #Comparar la eficiencia y el nivel de consumo
@@ -200,7 +190,7 @@ var_tot
 
 La varianza generalizada es $1992256$, lo cual es un valor bastante grande; esto indica que la dispersión de los datos es elevada. La varianza total es $278.036$.
 
-### Cuarto paso 
+### Cuarto paso
 
 En este apartado vamos a trabajar con la variable \textit(nivel_eficiencia), que recordemos que nos da el valor del nivel de eficiencia energética del hogar clasificado entre cinco niveles: "Muy bajo", "Bajo", "Medio", "Alto", "Muy alto".
 
@@ -227,8 +217,7 @@ Como podemos observar, la probabilidad del suceso es extremadamente baja.
 
 A continuación vamos a ajustar un modelo de regresión multivariante de la forma:
 
-$$Y=\beta_0+\beta_1 X_1+\beta_2 X_2+ \epsilon$$
-Donde postularé que la variable $Y$, que referencia al consumo energético de un hogar, tiene una relación lineal con el coste de la factura energética $X_1$ y la superfície del hogar $X_2$.
+$$Y=\beta_0+\beta_1 X_1+\beta_2 X_2+ \epsilon$$ Donde postularé que la variable $Y$, que referencia al consumo energético de un hogar, tiene una relación lineal con el coste de la factura energética $X_1$ y la superfície del hogar $X_2$.
 
 ```{r}
 #Defino la variable dependiente
@@ -256,7 +245,7 @@ coeficientes <- ajuste$coefficients %>% matrix()
 score <- t(X)%*%(Y-X%*%coeficientes)
 ```
 
-La función score es muy cercana a cero, por lo tanto, los parámetros estimados en el ajuste lineal se encuentran en un máximo. 
+La función score es muy cercana a cero, por lo tanto, los parámetros estimados en el ajuste lineal se encuentran en un máximo.
 
 ### Sexto paso
 
@@ -272,19 +261,16 @@ medias_alto <- nivel_alto %>% colMeans()
 medias_bajo <- nivel_bajo %>% colMeans()
 #Calculamos el estadístico
 estadistico <- (n_1*n_2/(n_1+n_2))*t(medias_alto-medias_bajo)%*%solve(covarianza)*(medias_alto-medias_bajo)
+estadistico
 ```
 
-```{r}
-chisq.test(estadistico)
-```
-
-El *p-valor* no es significativo, por tanto no tenemos suficiente evidencia como para rechazar que ambas medias sean iguales.
+El estadístico contiene valores negativos, lo cual nos indica que no seguirá una distribución Chi cuadrado, por tanto, podemos rechazar la hipótesis nula y concluir que las medias son diferentes según el nivel de eficiencia.
 
 ### Conclusión
 
 En conclusión, las variables cuantitativas están correlacionadas entre ellas; salvo el gasto en combustible y el consumo, que no se puede rechazar que la correlación sea nula.
 
-Por otro lado, no hemos podido extraer ninguna conclusión interesante de la relación entre las variables que hemos estudiado, ya que no parece haber una relación entre estas.
+Por otro lado, no hemos podido extraer ninguna conclusión interesante de la relación entre las variables que hemos estudiado, ya que no parece haber una relación entre estas. Lo único que hemos concluido es que sí que puede existir diferencias relevantes en el consumo medio según el nivel de eficiencia energética.
 
 El problema de no haber concluido nada interesante se puede deber a que los datos no son reales, y por tanto, puede que haya variables que tomen valores que no tengan sentido con otras. Creo que sería mejor trabajar directamente con una base de datos real a la hora de hacer el análisis.
 
